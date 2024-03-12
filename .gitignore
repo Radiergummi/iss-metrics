@@ -1,0 +1,5 @@
+.idea/
+iss-exporter/node_modules/
+iss-exporter/dist/
+
+.env

@@ -1,0 +1,26 @@
+global:
+  # Set the scrape interval to every 15 seconds. Default is every 1 minute.
+  scrape_interval: 15s
+
+  # Evaluate rules every 15 seconds. The default is every 1 minute.
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: prometheus
+    metrics_path: /prometheus/metrics
+    static_configs:
+      - targets: [ prometheus:9090 ]
+
+  - job_name: grafana
+    metrics_path: /grafana/metrics
+    static_configs:
+      - targets: [ grafana:3000 ]
+
+  - job_name: caddy
+    static_configs:
+      - targets: [ caddy:2019 ]
+
+  - job_name: iss_exporter
+    scrape_interval: 2s
+    static_configs:
+      - targets: [ exporter:3000 ]

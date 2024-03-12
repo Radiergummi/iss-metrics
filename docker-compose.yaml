@@ -1,0 +1,133 @@
+services:
+  exporter:
+    build: .
+    restart: unless-stopped
+    environment:
+      WEB_SERVER_METRICS: "${EXPORTER_WEB_SERVER_METRICS:-true}"
+      SUBSCRIPTION_ENDPOINT: "${EXPORTER_SUBSCRIPTION_ENDPOINT:-https://push.lightstreamer.com}"
+      SUBSCRIPTION_ADAPTER: "${EXPORTER_SUBSCRIPTION_ADAPTER:-ISSLIVE}"
+      METRICS_ENDPOINT: "${EXPORTER_METRICS_ENDPOINT:-/metrics}"
+      STATUS_ENDPOINT: "${EXPORTER_STATUS_ENDPOINT:-/status}"
+      LISTEN_PORT: "${EXPORTER_LISTEN_PORT:-3000}"
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:${EXPORTER_LISTEN_PORT:-3000}${EXPORTER_STATUS_ENDPOINT:-/status}" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - monitoring
+    expose:
+      - "${EXPORTER_LISTEN_PORT:-3000}"
+
+  grafana:
+    image: "grafana/grafana-oss:${GRAFANA_VERSION:-latest}"
+    restart: unless-stopped
+    environment:
+      GF_SERVER_DOMAIN: "${SITE_DOMAIN:-localhost}"
+      GF_SMTP_EHLO_IDENTITY: "${SITE_DOMAIN:-localhost}"
+      GF_LOG_MODE: console
+    healthcheck:
+      test: [ "CMD", "wget", "--quiet", "http://localhost:3000/api/health", "--output-document", "-" ]
+      interval: 10s
+      timeout: 15s
+      retries: 10
+      start_period: 40s
+    volumes:
+      - ./grafana/grafana.ini:/etc/grafana/grafana.ini:ro
+      - ./grafana/datasources.yaml:/etc/grafana/provisioning/datasources/main.yaml:ro
+      - ./grafana/dashboards.yaml:/etc/grafana/provisioning/dashboards/main.yaml:ro
+      - ./grafana/dashboards:/etc/grafana/dashboards
+      - ./grafana/markers:/usr/share/grafana/public/img/icons/marker:ro
+      - grafana_data:/var/lib/grafana
+    expose:
+      - 3000
+    networks:
+      - default
+      - monitoring
+
+  prometheus:
+    image: "prom/prometheus:${PROMETHEUS_VERSION:-latest}"
+    restart: unless-stopped
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yaml"
+      - "--storage.tsdb.path=/prometheus"
+      - "--storage.tsdb.retention.time=${PROMETHEUS_RETENTION_TIME:-14d}"
+      - "--web.console.libraries=/etc/prometheus/console_libraries"
+      - "--web.console.templates=/etc/prometheus/consoles"
+      - "--web.user-assets=/user"
+      - "--web.enable-admin-api"
+      - "--web.page-title=Prometheus: ISS Metrics"
+      - "--web.external-url=${URL_PREFIX_PROMETHEUS:-/prometheus}"
+      - "--web.route-prefix=${URL_PREFIX_PROMETHEUS:-/prometheus}"
+      - "--log.format=json"
+      - "--log.level=warn"
+    healthcheck:
+      test: [ "CMD", "wget", "--quiet", "http://localhost:9090${URL_PREFIX_PROMETHEUS:-/prometheus}/-/healthy", "--output-document", "-" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    volumes:
+      - ./prometheus/prometheus.yaml:/etc/prometheus/prometheus.yaml:ro
+      - ./public:/user:ro
+      - prometheus_data:/prometheus:rw
+    networks:
+      - monitoring
+    expose:
+      - 9090
+
+  caddy:
+    image: "caddy:${CADDY_VERSION:-latest}"
+    restart: unless-stopped
+    environment:
+      SITE_DOMAIN: "${SITE_DOMAIN:-localhost}"
+      EMAIL: "admin@${SITE_DOMAIN:-localhost}"
+      TRUSTED_PROXIES: "${TRUSTED_PROXIES:-private_ranges}"
+      HOMEPAGE: "${HOMEPAGE:-${URL_PREFIX_GRAFANA:-/grafana}/}"
+
+      URL_PREFIX_ASSETS: "${URL_PREFIX_ASSETS:-/assets}"
+      URL_PREFIX_GRAFANA: "${URL_PREFIX_GRAFANA:-/grafana}"
+      UPSTREAM_GRAFANA: "grafana:3000"
+
+      EXPOSE_PROMETHEUS: "${EXPOSE_PROMETHEUS:-true}"
+      URL_PREFIX_PROMETHEUS: "${URL_PREFIX_PROMETHEUS:-/prometheus}"
+      UPSTREAM_PROMETHEUS: "prometheus:9090"
+    healthcheck:
+      test: [ "CMD", "wget", "--quiet", "http://localhost:2019/config", "--output-document", "-" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    volumes:
+      - ./caddy/Caddyfile:/etc/caddy/Caddyfile
+      - ./caddy/error-pages:/error-pages:ro
+      - ./public:/srv:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    networks:
+      - default
+      - monitoring
+    ports:
+      - published: "${HTTP_PORT:-3000}"
+        target: 80
+        protocol: tcp
+        mode: host
+      - published: "${HTTPS_PORT:-3010}"
+        target: 443
+        protocol: tcp
+        mode: host
+      - published: "${HTTPS_PORT:-3010}"
+        target: 443
+        protocol: udp
+        mode: host
+    expose:
+      - 2019
+
+networks:
+  default:
+  monitoring:
+    driver: bridge
+
+volumes:
+  grafana_data:
+  prometheus_data:
+  caddy_data:
+  caddy_config:

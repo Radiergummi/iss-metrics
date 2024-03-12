@@ -1,0 +1,57 @@
+body {
+    text-align: center;
+    padding: 150px;
+}
+
+h1 {
+    font-size: 50px;
+}
+
+body {
+    font: 20px "Open Sans", Helvetica, sans-serif;
+    color: #333;
+}
+
+article.error {
+    display: block;
+    text-align: left;
+    width: 650px;
+    margin: 0 auto;
+}
+
+article.error header {
+    display: flex;
+    align-items: baseline;
+    margin-bottom: 1rem;
+}
+
+article.error header img {
+    margin-right: 1rem;
+}
+
+article.error header h1 {
+    margin: 0;
+}
+
+p {
+    line-height: 1.6;
+    color: #666;
+}
+
+@media screen and (prefers-color-scheme: dark) {
+    body {
+        background-color: #333;
+        color: #fafafa;
+    }
+
+    a {
+        color: #fafafa;
+    }
+
+    p {
+        color: #d0d0d0;
+    }
+
+    article.error {
+    }
+}

@@ -1,0 +1,21 @@
+{
+  "name": "iss-telemetry-exporter",
+  "version": "1.0.0",
+  "description": "A Prometheus exporter for the Lightstreamer ISS Telemetry feed.",
+  "main": "dist/index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node dist/index.js",
+    "build": "tsc",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Moritz Friedrich <m@9dev.de>",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.18.3",
+    "express-prom-bundle": "^7.0.0",
+    "lightstreamer-client-node": "^9.1.0",
+    "prom-client": "^15.1.0",
+    "typescript": "^5.4.2"
+  }
+}
