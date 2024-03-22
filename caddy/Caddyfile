@@ -1,25 +1,24 @@
 {
-    # These ports are exposed by the Caddy container and will be bound
-    # to the ports defined in the compose file.
+	# These ports are exposed by the Caddy container and will be bound
+	# to the ports defined in the compose file.
 	http_port 80
 	https_port 443
 	default_sni {$SITE_DOMAIN:localhost}
 
-    servers :443 {
-        name https
-    }
+	servers :443 {
+		name https
+	}
 
 	servers :80 {
-	    name http
+		name http
 		trusted_proxies static {$TRUSTED_PROXIES:private_ranges}
 		metrics
 	}
 
-	admin :2019 {
-	}
+	admin off
 
-	log default {
-		output stdout
+	log {
+		output stderr
 		format json
 	}
 
@@ -29,23 +28,23 @@
 # Handle errors with custom error pages. This takes effect for any
 # request that results in an HTTP error later on.
 (error_pages) {
-    handle_errors {
-        root * /error-pages
-        rewrite * /{err.status_code}.html
+	handle_errors {
+		root * /error-pages
+		rewrite * /{err.status_code}.html
 
-        file_server {
-            status {err.status_code}
-        }
-    }
+		file_server {
+			status {err.status_code}
+		}
+	}
 }
 
 # Serve static assets from the /srv directory (which is mapped
 # to the public/ folder in the project root).
 (assets) {
 	handle_path {$URL_PREFIX_ASSETS:/assets}/* {
-        root * /srv
-        file_server
-        encode gzip zstd
+		root * /srv
+		file_server
+		encode gzip zstd
 	}
 }
 
@@ -65,82 +64,80 @@ http://localhost:2020 {
 
 # Redirect all requests to www. to the root domain.
 www.{$SITE_DOMAIN:localhost} {
-    redir {$SITE_DOMAIN:localhost}{uri} permanent
+	redir {$SITE_DOMAIN:localhost}{uri} permanent
 }
 
 # This block describes the site domain.
 {$SITE_DOMAIN:localhost} {
-    import error_pages
-    import assets
+	import error_pages
+	import assets
 
-    # Redirect all requests to the root path to the Grafana instance.
-    redir / {$HOMEPAGE:{$URL_PREFIX_GRAFANA:grafana}/} temporary
+	# Redirect all requests to the root path to the Grafana instance.
+	redir / {$HOMEPAGE:{$URL_PREFIX_GRAFANA:grafana}/} temporary
 
-    # This block handles all requests to the Prometheus instance. Note
-    # that requests between containers will not traverse Caddy at all,
-    # so this block is only relevant for requests from the internet.
-    handle {$URL_PREFIX_PROMETHEUS:/prometheus}/* {
+	# This block handles all requests to the Prometheus instance. Note
+	# that requests between containers will not traverse Caddy at all,
+	# so this block is only relevant for requests from the internet.
+	handle {$URL_PREFIX_PROMETHEUS:/prometheus}/* {
+		# Block public access to the metrics endpoint.
+		handle {$URL_PREFIX_PROMETHEUS:/prometheus}/metrics {
+			abort
+		}
 
-        # Block public access to the metrics endpoint.
-        handle {$URL_PREFIX_PROMETHEUS:/prometheus}/metrics {
-            abort
-        }
+		# By evaluating the expression below at runtime, we can block
+		# access to the Prometheus instance unless the
+		# EXPOSE_PROMETHEUS environment variable is set to "true".
+		@prometheus_enabled {
+			expression {env.EXPOSE_PROMETHEUS} == "true"
+		}
 
-        # By evaluating the expression below at runtime, we can block
-        # access to the Prometheus instance unless the
-        # EXPOSE_PROMETHEUS environment variable is set to "true".
-        @prometheus_enabled {
-            expression {env.EXPOSE_PROMETHEUS} == "true"
-        }
+		# Proxy requests to the Prometheus upstream.
+		handle @prometheus_enabled {
+			reverse_proxy {$UPSTREAM_PROMETHEUS:prometheus:9090}
+		}
 
-        # Proxy requests to the Prometheus upstream.
-        handle @prometheus_enabled {
-            reverse_proxy {$UPSTREAM_PROMETHEUS:prometheus:9090}
-        }
+		# If the previous handler has not been executed, Prometheus is
+		# not exposed and we return a 403 error instead.
+		handle {
+			error 403
+		}
+	}
 
-        # If the previous handler has not been executed, Prometheus is
-        # not exposed and we return a 403 error instead.
-        handle {
-            error 403
-        }
-    }
+	# This block handles all requests to the Grafana instance
+	handle {$URL_PREFIX_GRAFANA:/grafana}* {
+		# Block public access to the metrics endpoint
+		handle {$URL_PREFIX_GRAFANA:/grafana}/metrics {
+			abort
+		}
 
-    # This block handles all requests to the Grafana instance
-    handle {$URL_PREFIX_GRAFANA:/grafana}* {
+		reverse_proxy {$UPSTREAM_GRAFANA:grafana:3000}
+	}
 
-        # Block public access to the metrics endpoint
-        handle {$URL_PREFIX_GRAFANA:/grafana}/metrics {
-            abort
-        }
-
-        reverse_proxy {$UPSTREAM_GRAFANA:grafana:3000}
-    }
-
-    # If we end up here, the request is for a path that does not exist
-    # and we return a 404 error.
-    handle {
-        error 404
-    }
+	# If we end up here, the request is for a path that does not exist
+	# and we return a 404 error.
+	handle {
+		error 404
+	}
 }
 
 # Handle HTTP requests to localhost explicitly. This is useful for
 # testing the stack locally, where you don't want to use HTTPS with an
 # invalid certificate.
 http://localhost {
-    import error_pages
-    import assets
+	import error_pages
+	import assets
 
-    redir / {$URL_PREFIX_GRAFANA:grafana}/ permanent
+	redir / {$URL_PREFIX_GRAFANA:grafana}/ permanent
 
-    handle {$URL_PREFIX_PROMETHEUS:/prometheus}* {
-        reverse_proxy {$UPSTREAM_PROMETHEUS:prometheus:9090}
-    }
+	handle {$URL_PREFIX_PROMETHEUS:/prometheus}* {
+		reverse_proxy {$UPSTREAM_PROMETHEUS:prometheus:9090}
+	}
 
-    handle {$URL_PREFIX_GRAFANA:/grafana}* {
-        reverse_proxy {$UPSTREAM_GRAFANA:grafana:3000}
-    }
+	handle {$URL_PREFIX_GRAFANA:/grafana}* {
+		reverse_proxy {$UPSTREAM_GRAFANA:grafana:3000}
+	}
 
-    handle {
-        error 404
-    }
+	handle {
+		error 404
+	}
 }
