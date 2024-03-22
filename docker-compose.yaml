@@ -92,7 +92,7 @@ services:
       URL_PREFIX_PROMETHEUS: "${URL_PREFIX_PROMETHEUS:-/prometheus}"
       UPSTREAM_PROMETHEUS: "prometheus:9090"
     healthcheck:
-      test: [ "CMD", "wget", "--quiet", "http://localhost:2019/config", "--output-document", "-" ]
+      test: [ "CMD", "wget", "--quiet", "http://localhost:2020/health", "--output-document", "-" ]
       interval: 30s
       timeout: 10s
       retries: 3

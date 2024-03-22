@@ -49,6 +49,20 @@
 	}
 }
 
+http://localhost:2020 {
+	@healthcheck {
+		method GET
+		path /health
+		remote_ip 127.0.0.1
+	}
+
+	handle @healthcheck {
+		respond 204
+	}
+
+	abort
+}
+
 # Redirect all requests to www. to the root domain.
 www.{$SITE_DOMAIN:localhost} {
     redir {$SITE_DOMAIN:localhost}{uri} permanent
