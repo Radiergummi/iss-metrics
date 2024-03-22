@@ -40,3 +40,13 @@ The exporter can be configured via environment variables. The following values a
 | `LISTEN_PORT`               | `3000`                                    | Port to listen for HTTP requests on.                                                                      | 
 | `METRICS_ENDPOINT`          | `/metrics`                                | URI to respond for metric collection requests.                                                            | 
 | `STATUS_ENDPOINT`           | `/status`                                 | URI to respond for status check requests.                                                                 | 
+
+Why didn't you use Python?
+--------------------------
+Fair point. I actually considered doing so, until I remembered how managing dependencies consistently sucks every single 
+last ounce of joy out of working on side projects, and settled on TypeScript instead: Proper static analysis, installing
+dependencies with a single command, package it all up in a Docker container, no further ado. Compare this experience to
+Python: Ask five Python developers on the proper way to manage packages, and you'll get seven opinions! From virtual 
+environments that require using bash to activate, package managers without a way to write a lock file, to hard-wired
+dependencies on system packages: No, thank you. If Python ever settles on a single darn way to manage packages that 
+doesn't make me want to choose another career path, I'll reconsider. 
