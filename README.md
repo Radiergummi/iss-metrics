@@ -1,10 +1,12 @@
-![ISS](https://upload.wikimedia.org/wikipedia/commons/thumb/3/3c/ISS_blueprint.png/2560px-ISS_blueprint.png)
-
 ISS Metrics
 ===========
 > Observability stack for the public ISS telemetry feed published by NASA. Provides a Grafana dashboard and Prometheus
 > metrics for the International Space Station telemetry data, easily deployed using docker compose!
 
+[![ISS](https://upload.wikimedia.org/wikipedia/commons/thumb/3/3c/ISS_blueprint.png/2560px-ISS_blueprint.png)](https://en.m.wikipedia.org/wiki/International_Space_Station#Structure)
+<sub><sup>*Image published under CC0/1.0 by Daniel Molybdenum/NASA/Roscosmos, with the help of John Chryslar and others.*</sup></sub>
+
+**This project would not have been possible without the invaluable work of the maintainers of the [ISSMimic Project](https://www.issmimic.space/).**
 
 System Requirements
 -------------------
@@ -90,3 +92,7 @@ server {
     }
 }
 ``` 
+
+Contributing
+------------
+Contributions are welcome! If you have any ideas for improvements, or if you find any bugs, feel free to open an issue.
