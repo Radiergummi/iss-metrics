@@ -1,14 +1,27 @@
 services:
   exporter:
-    build: .
+    build:
+        context: .
+        dockerfile: Dockerfile
+        args:
+          SOURCE_ROOT: "${EXPORTER_SOURCE_ROOT:-./iss-exporter/src}"
+          LISTEN_PORT: ${EXPORTER_LISTEN_PORT:-3000}
     restart: unless-stopped
     environment:
+      LOG_LEVEL: "${EXPORTER_LOG_LEVEL:-info}"
+      UPDATE_INTERVAL: "${EXPORTER_UPDATE_INTERVAL:-1000}"
+      METRICS_PREFIX: "${EXPORTER_METRICS_PREFIX:-iss}"
+      NODE_METRICS: ${EXPORTER_NODE_METRICS:-true}"
+      NODE_METRICS_PREFIX: ${EXPORTER_NODE_METRICS:-node}"
       WEB_SERVER_METRICS: "${EXPORTER_WEB_SERVER_METRICS:-true}"
+      WEB_SERVER_METRICS_PREFIX: "${EXPORTER_WEB_SERVER_METRICS_PREFIX:-express}"
+      POSITION_UPDATE_FREQUENCY: "${EXPORTER_POSITION_UPDATE_FREQUENCY:-2000}"
       SUBSCRIPTION_ENDPOINT: "${EXPORTER_SUBSCRIPTION_ENDPOINT:-https://push.lightstreamer.com}"
       SUBSCRIPTION_ADAPTER: "${EXPORTER_SUBSCRIPTION_ADAPTER:-ISSLIVE}"
+      POSITION_API_URL: "${EXPORTER_POSITION_API_URL:-http://api.open-notify.org/iss-now.json}"
       METRICS_ENDPOINT: "${EXPORTER_METRICS_ENDPOINT:-/metrics}"
       STATUS_ENDPOINT: "${EXPORTER_STATUS_ENDPOINT:-/status}"
-      LISTEN_PORT: "${EXPORTER_LISTEN_PORT:-3000}"
+      TIME_SIGNAL_NAME: "${EXPORTER_TIME_SIGNAL_NAME:-TIME_000001}"
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:${EXPORTER_LISTEN_PORT:-3000}${EXPORTER_STATUS_ENDPOINT:-/status}" ]
       interval: 30s
