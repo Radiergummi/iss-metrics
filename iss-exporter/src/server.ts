@@ -3,7 +3,6 @@ import expressMetricsMiddleware from "express-prom-bundle";
 import {info} from "./logging.js";
 import type {Registry} from "prom-client";
 import type {Config} from "./config.js";
-import {telemetrySignalStatus} from "./subscription.js";
 
 /**
  * Create a new web server to expose the Prometheus metrics endpoint.
@@ -71,8 +70,6 @@ function metricsEndpoint(registry: Registry): RequestHandler {
  */
 function statusEndpoint(): RequestHandler {
     return async function statusEndpoint(_req, res) {
-        const signalStatus = (await telemetrySignalStatus.get()).values.at(-1)?.value ?? 0;
-
-        res.json({signalStatus});
+        return res.status(204).end();
     }
 }

@@ -7,20 +7,21 @@ declare global {
     namespace NodeJS {
         // noinspection JSUnusedGlobalSymbols -- false positive
         interface ProcessEnv {
+            LISTEN_PORT: NumericString;
             LOG_LEVEL: Level;
-            UPDATE_FREQUENCY: NumericString;
+            METRICS_ENDPOINT: string;
             METRICS_PREFIX: string;
-            POSITION_API_URL: Url;
-            POSITION_UPDATE_FREQUENCY: NumericString;
-            SUBSCRIPTION_ENDPOINT: Url;
-            SUBSCRIPTION_ADAPTER: string;
-            WEB_SERVER_METRICS: 'true' | 'false';
-            WEB_SERVER_METRICS_PREFIX: string;
             NODE_METRICS: 'true' | 'false';
             NODE_METRICS_PREFIX: string;
-            METRICS_ENDPOINT: string;
+            POSITION_API_URL: Url;
+            POSITION_UPDATE_FREQUENCY: NumericString;
             STATUS_ENDPOINT: string;
-            LISTEN_PORT: NumericString;
+            SUBSCRIPTION_ADAPTER: string;
+            SUBSCRIPTION_ENDPOINT: Url;
+            TIME_SIGNAL_NAME: string;
+            UPDATE_FREQUENCY: NumericString;
+            WEB_SERVER_METRICS: 'true' | 'false';
+            WEB_SERVER_METRICS_PREFIX: string;
         }
     }
 }

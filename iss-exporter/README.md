@@ -26,20 +26,21 @@ The exporter can be configured via environment variables. The following values a
 
 | Variable                    | Default                                   | Description                                                                                               |
 |-----------------------------|-------------------------------------------|-----------------------------------------------------------------------------------------------------------|
-| `LOG_LEVEL`                 | `info`                                    | Log level for Exporter logging.                                                                           |
-| `UPDATE_FREQUENCY`          | `1000`                                    | Interval in ms between metrics updates. This is the minimum scrape interval for Prometheus.               |
-| `METRICS_PREFIX`            | `iss`                                     | Prefix for all telemetry metrics.                                                                         |
-| `NODE_SERVER_METRICS`       | `node`                                    | Prefix for all Node.js runtime metrics.                                                                   |
-| `NODE_METRICS_PREFIX`       | `node`                                    | Prefix for all Node.js runtime metrics.                                                                   |
-| `WEB_SERVER_METRICS`        | `true`                                    | Collect metrics on the Express server itself.                                                             |
-| `WEB_SERVER_METRICS_PREFIX` | `express`                                 | Prefix for all metrics emitted on the Express server itself.                                              |
-| `POSITION_UPDATE_FREQUENCY` | `2000`                                    | Interval in ms between position update requests.                                                          |
-| `POSITION_API_URL`          | `http://api.open-notify.org/iss-now.json` | URL to the position API endpoint to query.                                                                |
-| `SUBSCRIPTION_ENDPOINT`     | `https://push.lightstreamer.com`          | Lightstreamer subscription endpoint to listen to.                                                         |
-| `SUBSCRIPTION_ADAPTER`      | `ISSLIVE`                                 | Lightstreamer [adapter set](https://lightstreamer.com/docs/ls-server/latest/General%20Concepts.pdf) name. |
 | `LISTEN_PORT`               | `3000`                                    | Port to listen for HTTP requests on.                                                                      | 
+| `LOG_LEVEL`                 | `info`                                    | Log level for Exporter logging.                                                                           |
 | `METRICS_ENDPOINT`          | `/metrics`                                | URI to respond for metric collection requests.                                                            | 
+| `METRICS_PREFIX`            | `iss`                                     | Prefix for all telemetry metrics.                                                                         |
+| `NODE_METRICS_PREFIX`       | `node`                                    | Prefix for all Node.js runtime metrics.                                                                   |
+| `NODE_METRICS`              | `true`                                    | Prefix for all Node.js runtime metrics.                                                                   |
+| `POSITION_API_URL`          | `http://api.open-notify.org/iss-now.json` | URL to the position API endpoint to query.                                                                |
+| `POSITION_UPDATE_FREQUENCY` | `2000`                                    | Interval in ms between position update requests.                                                          |
 | `STATUS_ENDPOINT`           | `/status`                                 | URI to respond for status check requests.                                                                 | 
+| `SUBSCRIPTION_ADAPTER`      | `ISSLIVE`                                 | Lightstreamer [adapter set](https://lightstreamer.com/docs/ls-server/latest/General%20Concepts.pdf) name. |
+| `SUBSCRIPTION_ENDPOINT`     | `https://push.lightstreamer.com`          | Lightstreamer subscription endpoint to listen to.                                                         |
+| `TIME_SIGNAL_NAME`          | `TIME_000001`                             | Metric to read the time control value from.                                                               | 
+| `UPDATE_FREQUENCY`          | `1000`                                    | Interval in ms between metrics updates. This is the minimum scrape interval for Prometheus.               |
+| `WEB_SERVER_METRICS_PREFIX` | `express`                                 | Prefix for all metrics emitted on the Express server itself.                                              |
+| `WEB_SERVER_METRICS`        | `true`                                    | Collect metrics on the Express server itself.                                                             |
 
 Why didn't you use Python?
 --------------------------
