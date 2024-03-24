@@ -3,7 +3,14 @@ services:
     build:
         context: .
         dockerfile: Dockerfile
+
         args:
+
+          # The source root of the exporter project. This variable will be placed in the .env file
+          # at the project root when the project is built for the first time.
+          # It is used to determine the location of the source files in the container, so source
+          # map references in the logs will point to the correct location on the host, which makes
+          # debugging a lot easier.
           SOURCE_ROOT: "${EXPORTER_SOURCE_ROOT:-./iss-exporter/src}"
           LISTEN_PORT: ${EXPORTER_LISTEN_PORT:-3000}
     restart: unless-stopped
@@ -23,7 +30,11 @@ services:
       STATUS_ENDPOINT: "${EXPORTER_STATUS_ENDPOINT:-/status}"
       TIME_SIGNAL_NAME: "${EXPORTER_TIME_SIGNAL_NAME:-TIME_000001}"
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:${EXPORTER_LISTEN_PORT:-3000}${EXPORTER_STATUS_ENDPOINT:-/status}" ]
+      test:
+        - "CMD"
+        - "curl"
+        - "-f"
+        - "http://localhost:${EXPORTER_LISTEN_PORT:-3000}${EXPORTER_STATUS_ENDPOINT:-/status}"
       interval: 30s
       timeout: 10s
       retries: 3
@@ -38,20 +49,67 @@ services:
     environment:
       GF_SERVER_DOMAIN: "${SITE_DOMAIN:-localhost}"
       GF_SMTP_EHLO_IDENTITY: "${SITE_DOMAIN:-localhost}"
+
+      # Ensure logs are written to stdout immediately
       GF_LOG_MODE: console
     healthcheck:
-      test: [ "CMD", "wget", "--quiet", "http://localhost:3000/api/health", "--output-document", "-" ]
+      test:
+        - "CMD"
+        - "wget"
+        - "--quiet"
+        - "http://localhost:3000/api/health"
+        - "--output-document"
+        - "-"
       interval: 10s
       timeout: 15s
       retries: 10
       start_period: 40s
+
     volumes:
-      - ./grafana/grafana.ini:/etc/grafana/grafana.ini:ro
-      - ./grafana/datasources.yaml:/etc/grafana/provisioning/datasources/main.yaml:ro
-      - ./grafana/dashboards.yaml:/etc/grafana/provisioning/dashboards/main.yaml:ro
-      - ./grafana/dashboards:/etc/grafana/dashboards
-      - ./grafana/markers:/usr/share/grafana/public/img/icons/marker:ro
-      - grafana_data:/var/lib/grafana
+      # This volume mounts the main Grafana configuration into the Grafana container.
+      - source: ./grafana/grafana.ini
+        target: /etc/grafana/grafana.ini
+        type: bind
+        consistency: cached
+        read_only: true
+
+      # This volume mounts the custom datasources configuration.
+      # It configures the datasources to be provisioned.
+      - source: ./grafana/datasources.yaml
+        target: /etc/grafana/provisioning/datasources/main.yaml
+        type: bind
+        consistency: cached
+        read_only: true
+
+      # This volume mounts the custom dashboards configuration.
+      # It configures the dashboards to be provisioned.
+      - source: ./grafana/dashboards.yaml
+        target: /etc/grafana/provisioning/dashboards/main.yaml
+        type: bind
+        consistency: cached
+        read_only: true
+
+      # This volume mounts the custom dashboards.
+      # They will be provisioned automatically.
+      - source: ./grafana/dashboards
+        target: /etc/grafana/dashboards
+        type: bind
+        consistency: cached
+        read_only: true
+
+      # This volume mounts the custom markers (e.g. the ISS icon used on the map).
+      - source: ./grafana/markers
+        target: /usr/share/grafana/public/img/icons/marker
+        type: bind
+        consistency: cached
+        read_only: true
+
+      # This volume holds the Grafana database and other data generated at runtime.
+      # You should not delete this volume if you want to keep adjustments and dashboards.
+      - source: grafana_data
+        target: /var/lib/grafana
+        type: volume
+
     expose:
       - 3000
     networks:
@@ -75,14 +133,44 @@ services:
       - "--log.format=json"
       - "--log.level=warn"
     healthcheck:
-      test: [ "CMD", "wget", "--quiet", "http://localhost:9090${URL_PREFIX_PROMETHEUS:-/prometheus}/-/healthy", "--output-document", "-" ]
+      test:
+        - "CMD"
+        - "wget"
+        - "--quiet"
+        - "http://localhost:9090${URL_PREFIX_PROMETHEUS:-/prometheus}/-/healthy"
+        - "--output-document"
+        - "-"
       interval: 30s
       timeout: 10s
       retries: 3
     volumes:
-      - ./prometheus/prometheus.yaml:/etc/prometheus/prometheus.yaml:ro
-      - ./public:/user:ro
-      - prometheus_data:/prometheus:rw
+      # This volume mounts the main Prometheus configuration.
+      - source: ./prometheus/prometheus.yaml
+        target: /etc/prometheus/prometheus.yaml
+        type: bind
+        consistency: cached
+        read_only: true
+
+      # This volume mounts the individual scrape target configurations.
+      - source: ./prometheus/targets
+        target: /etc/prometheus/targets
+        type: bind
+        consistency: cached
+        read_only: true
+
+      # This volume mounts public assets into the Prometheus container.
+      - source: ./public
+        target: /user
+        type: bind
+        consistency: cached
+        read_only: true
+
+      # This volume holds the Prometheus database and other data generated at runtime.
+      # You should not delete this volume if you want to keep your metrics history.
+      - source: prometheus_data
+        read_only: false
+        target: /prometheus
+        type: volume
     networks:
       - monitoring
     expose:
