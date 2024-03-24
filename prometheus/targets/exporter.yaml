@@ -1,0 +1,10 @@
+scrape_configs:
+  - job_name: iss_exporter
+    scrape_interval: 2s
+    dns_sd_configs:
+      - names: [ 'exporter' ]
+        type: 'A'
+        port: 3000
+    relabel_configs:
+      - source_labels: [ '__meta_dns_name' ]
+        target_label: 'service'

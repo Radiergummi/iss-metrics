@@ -1,0 +1,9 @@
+scrape_configs:
+  - job_name: caddy
+    dns_sd_configs:
+      - names: [ 'caddy' ]
+        type: 'A'
+        port: 2019
+    relabel_configs:
+      - source_labels: [ '__meta_dns_name' ]
+        target_label: 'service'
