@@ -15,7 +15,8 @@
 		metrics
 	}
 
-	admin {}
+	admin :2019 {
+	}
 
 	log {
 		output stderr
