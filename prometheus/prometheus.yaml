@@ -4,23 +4,33 @@ global:
 
   # Evaluate rules every 15 seconds. The default is every 1 minute.
   evaluation_interval: 15s
-
+scrape_config_files: [ '/etc/prometheus/targets/*.yaml' ]
 scrape_configs:
-  - job_name: prometheus
-    metrics_path: /prometheus/metrics
-    static_configs:
-      - targets: [ prometheus:9090 ]
-
   - job_name: grafana
     metrics_path: /grafana/metrics
-    static_configs:
-      - targets: [ grafana:3000 ]
+    dns_sd_configs:
+      - names: [ 'grafana' ]
+        type: 'A'
+        port: 3000
+    relabel_configs:
+      - source_labels: [ '__meta_dns_name' ]
+        target_label: 'service'
 
   - job_name: caddy
-    static_configs:
-      - targets: [ caddy:2019 ]
+    dns_sd_configs:
+      - names: [ 'caddy' ]
+        type: 'A'
+        port: 2019
+    relabel_configs:
+      - source_labels: [ '__meta_dns_name' ]
+        target_label: 'service'
 
   - job_name: iss_exporter
     scrape_interval: 2s
-    static_configs:
-      - targets: [ exporter:3000 ]
+    dns_sd_configs:
+      - names: [ 'exporter' ]
+        type: 'A'
+        port: 3000
+    relabel_configs:
+      - source_labels: [ '__meta_dns_name' ]
+        target_label: 'service'
