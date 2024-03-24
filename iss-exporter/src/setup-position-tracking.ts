@@ -52,19 +52,46 @@ export function setupPositionTracking(config: Config, registry: Registry) {
  */
 function positionLoader(url: string, latitudeMetric: Gauge, longitudeMetric: Gauge) {
     return async function loadPosition(signal?: AbortSignal) {
-        const response = await fetch(url, {
-            signal
-        });
-        const data = await response.json();
+        let response: Response | undefined;
+        let data: {
+            iss_position: {
+                latitude: number;
+                longitude: number;
+            }
+            message: string;
+        } | undefined;
 
-        if (!response.ok || !data.iss_position || data.message !== 'success') {
-            throw new Error('Invalid response');
+        try {
+            response = await fetch(url, {
+                signal,
+            });
+            data = await response.json();
+        } catch (error) {
+            logError(`Failed to fetch ISS position data`, {error});
+
+            return;
+        }
+
+        if (!response.ok) {
+            logError(
+                `Failed to fetch ISS position data: ${response.statusText}`,
+                {response}
+            );
+
+            return;
+        }
+
+        if (!data || !data.iss_position || data.message !== 'success') {
+            logError(
+                'Failed to parse ISS position data: Unexpected payload',
+                {data}
+            );
+
+            return;
         }
 
         const {latitude, longitude} = data.iss_position || {};
         latitudeMetric.set(Number(latitude));
         longitudeMetric.set(Number(longitude));
-
-        return {latitude, longitude};
     }
 }
