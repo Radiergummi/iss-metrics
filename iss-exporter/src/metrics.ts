@@ -74,14 +74,14 @@ function register(config: Config, registry: Registry) {
  * @param category Name of the category to prepend
  * @param name Name of the metric
  */
-function resolveMetricName(config: Config, category: string | null, name: string) {
+function resolveMetricName({metricsPrefix}: Config, category: string | null, name: string) {
     const safeCategory = category
-        ? category.replace(/^[^a-zA-Z]+|[^a-zA-Z0-9]+/g, '_') + '_'
+        ? category.trim().replace(/^[^a-zA-Z]+|[^a-zA-Z0-9]+/g, '_') + '_'
         : '';
     const safeName = name.replace(/_/g, '');
-    const prefix = config.metricsPrefix + safeCategory;
+    const prefix = metricsPrefix + safeCategory;
 
-    return `${prefix}_${safeName}`.toLowerCase();
+    return (prefix + safeName).toLowerCase();
 }
 
 /**
@@ -105,10 +105,10 @@ function resolveHelpText(
 
     // This call chain turns a record like `{ key: "value", test: 1 }` into
     // a string like `key: value, test: 1`.
-    const mapping =  Object
-            .entries(labels)
-            .map(([k, v]) => `${k}: ${v}`)
-            .join(', ');
+    const mapping = Object
+        .entries(labels)
+        .map(([k, v]) => `${k}: ${v}`)
+        .join(', ');
 
     return `${description} (Mapping: ${mapping})`;
 }
