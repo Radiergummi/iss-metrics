@@ -127,7 +127,7 @@ export function subscribe(
                 telemetrySignalStatus.set(0);
                 connected = false;
 
-                warn("Telemetry signal lost");
+                warn("Telemetry signal lost", {offset});
             }
         },
         onSubscriptionError(code: number, message: string) {
