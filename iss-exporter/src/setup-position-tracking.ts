@@ -67,7 +67,9 @@ function positionLoader(url: string, latitudeMetric: Gauge, longitudeMetric: Gau
             });
             data = await response.json();
         } catch (error) {
-            logError(`Failed to fetch ISS position data`, {error});
+            logError(`Failed to fetch ISS position data`, {
+                message: (error as Error).message,
+            });
 
             return;
         }
